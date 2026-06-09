@@ -104,6 +104,16 @@ echo ""
 echo -e "${BLUE}Installing dependencies...${NC}"
 cd "$DIR/whatsapp-fetcher" && npm install --silent 2>/dev/null
 pip3 install anthropic -q 2>/dev/null
+
+# Fix Puppeteer Chrome extraction issue (zip downloads but doesn't fully extract)
+CHROME_CACHE=~/.cache/puppeteer/chrome
+if ls "$CHROME_CACHE"/*.zip &>/dev/null 2>&1; then
+    for zip in "$CHROME_CACHE"/*.zip; do
+        dir=$(echo "$zip" | sed 's/\.zip//' | sed 's/-chrome-mac-arm64//')
+        unzip -o "$zip" -d "$dir" > /dev/null 2>&1 || true
+    done
+fi
+
 echo -e "  ${GREEN}✓ Done${NC}"
 echo ""
 
