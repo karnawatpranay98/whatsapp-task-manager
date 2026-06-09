@@ -32,7 +32,7 @@ async function fetchMessages() {
     });
 
     console.log('WhatsApp connected. Waiting for chats to load...');
-    await new Promise(r => setTimeout(r, 5000));
+    await new Promise(r => setTimeout(r, 50000));
     console.log('Fetching messages...');
 
     const cutoff = Date.now() - HOURS_BACK * 60 * 60 * 1000;
