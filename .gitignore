@@ -1,0 +1,18 @@
+# Secrets
+.env
+
+# Personal data
+messages.json
+open_items.txt
+run.log
+
+# WhatsApp session — anyone with this can access your WhatsApp
+whatsapp-fetcher/.wwebjs_auth/
+.wwebjs_cache/
+
+# Dependencies — reinstalled via npm install / pip install
+whatsapp-fetcher/node_modules/
+
+# Mac junk
+.DS_Store
+__pycache__/
