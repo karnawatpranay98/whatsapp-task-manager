@@ -32,11 +32,24 @@ async function fetchMessages() {
     });
 
     console.log('WhatsApp connected. Waiting for chats to load...');
-    await new Promise(r => setTimeout(r, 50000));
+    await new Promise(r => setTimeout(r, 120000));
     console.log('Fetching messages...');
 
     const cutoff = Date.now() - HOURS_BACK * 60 * 60 * 1000;
-    const chats = await client.getChats();
+    // Fetch chats in batches to avoid protocol timeout on slower machines
+    let chats;
+    let retries = 3;
+    while (retries > 0) {
+        try {
+            chats = await client.getChats();
+            break;
+        } catch (e) {
+            retries--;
+            if (retries === 0) throw e;
+            console.log(`Retrying getChats... (${retries} attempts left)`);
+            await new Promise(r => setTimeout(r, 10000));
+        }
+    }
 
     const result = [];
 
