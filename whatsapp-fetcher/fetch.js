@@ -32,24 +32,21 @@ async function fetchMessages() {
     });
 
     console.log('WhatsApp connected. Waiting for chats to load...');
-    await new Promise(r => setTimeout(r, 120000));
-    console.log('Fetching messages...');
+
+    const start = Date.now();
+    let chats = [];
+
+    while (Date.now() - start < 180000) {           // keep trying for max 3 minutes
+        chats = await client.getChats();             // ask: how many chats loaded?
+        console.log(`Loaded ${chats.length} chats...`);
+        if (chats.length >= 100) break;              // enough loaded → stop waiting
+        await new Promise(r => setTimeout(r, 3000)); // not enough yet → wait 3s → retry
+    }
+
+    if (chats.length === 0) throw new Error('No chats loaded after 3 minutes');
+    console.log(`Fetching messages from ${chats.length} chats...`);
 
     const cutoff = Date.now() - HOURS_BACK * 60 * 60 * 1000;
-    // Fetch chats in batches to avoid protocol timeout on slower machines
-    let chats;
-    let retries = 3;
-    while (retries > 0) {
-        try {
-            chats = await client.getChats();
-            break;
-        } catch (e) {
-            retries--;
-            if (retries === 0) throw e;
-            console.log(`Retrying getChats... (${retries} attempts left)`);
-            await new Promise(r => setTimeout(r, 10000));
-        }
-    }
 
     const result = [];
 
