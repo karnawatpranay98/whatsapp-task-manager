@@ -76,7 +76,7 @@ def analyze_messages(chats: list) -> str:
     conversation_text = '\n\n'.join(chat_blocks)
 
     response = client.messages.create(
-        model='claude-sonnet-4-6',
+        model='claude-haiku-3-5',
         max_tokens=2048,
         system=SYSTEM_PROMPT,
         messages=[{
