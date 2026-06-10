@@ -23,10 +23,22 @@ echo ""
 if ! command -v brew &>/dev/null; then
     echo "  Installing Homebrew (this may take a few minutes)..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    # Add brew to PATH for Apple Silicon Macs
-    eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv 2>/dev/null)"
+    # Add brew to PATH — works for both Apple Silicon and Intel Macs
+    if [ -f /opt/homebrew/bin/brew ]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+    elif [ -f /usr/local/bin/brew ]; then
+        eval "$(/usr/local/bin/brew shellenv)"
+        echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.zprofile
+    fi
     echo -e "  ${GREEN}✓ Homebrew installed${NC}"
 else
+    # Make sure brew is in PATH even if already installed
+    if [ -f /opt/homebrew/bin/brew ]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [ -f /usr/local/bin/brew ]; then
+        eval "$(/usr/local/bin/brew shellenv)"
+    fi
     echo -e "  ${GREEN}✓ Homebrew already installed${NC}"
 fi
 
@@ -105,13 +117,20 @@ echo -e "${BLUE}Installing dependencies...${NC}"
 cd "$DIR/whatsapp-fetcher" && npm install --silent 2>/dev/null
 pip3 install anthropic -q 2>/dev/null
 
-# Fix Puppeteer Chrome extraction issue (zip downloads but doesn't fully extract)
+# Fix Puppeteer Chrome extraction issue
+# Chrome zip downloads during npm install but Frameworks folder doesn't extract properly
+echo "  Fixing Chrome installation..."
 CHROME_CACHE=~/.cache/puppeteer/chrome
 if ls "$CHROME_CACHE"/*.zip &>/dev/null 2>&1; then
     for zip in "$CHROME_CACHE"/*.zip; do
-        dir=$(echo "$zip" | sed 's/\.zip//' | sed 's/-chrome-mac-arm64//')
-        unzip -o "$zip" -d "$dir" > /dev/null 2>&1 || true
+        VERSION_DIR=$(basename "$zip" | sed 's/-chrome-mac-arm64\.zip//')
+        TARGET="$CHROME_CACHE/mac_arm-$VERSION_DIR"
+        mkdir -p "$TARGET"
+        unzip -o "$zip" -d "$TARGET" > /dev/null 2>&1 || true
     done
+    echo -e "  ${GREEN}✓ Chrome fixed${NC}"
+else
+    echo -e "  ${GREEN}✓ Chrome OK${NC}"
 fi
 
 echo -e "  ${GREEN}✓ Done${NC}"
